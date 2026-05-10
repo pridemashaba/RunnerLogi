@@ -2,7 +2,7 @@
 'use client';
 
 import { CourierOption } from '@/types';
-import { Star, Clock, DollarSign, Truck } from 'lucide-react';
+import { Star, Clock, Truck } from 'lucide-react';
 import { formatETA } from '@/services/trackingService';
 
 interface Props {
@@ -61,7 +61,7 @@ export function CourierComparisonTable({ options, onSelect }: Props) {
               </td>
               <td className="whitespace-nowrap px-6 py-4">
                 <div className="flex items-center text-sm text-gray-900">
-                  <DollarSign className="h-4 w-4 text-gray-400 mr-1" />
+                  <span className="mr-1">R</span>
                   {option.price.toFixed(2)}
                 </div>
               </td>

@@ -3,12 +3,14 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { Delivery } from '@/types';
 import { deliveriesAPI } from '@/lib/api';
 import { format } from 'date-fns';
 import { Package, Truck, Clock, DollarSign } from 'lucide-react';
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [deliveries, setDeliveries] = useState<Delivery[]>([]);
   const [stats, setStats] = useState({
     totalDeliveries: 0,
@@ -18,6 +20,12 @@ export default function DashboardPage() {
   });
 
   useEffect(() => {
+    const token = document.cookie.match(/token=([^;]+)/)?.[1];
+    if (!token) {
+      router.push('/login');
+      return;
+    }
+
     const loadDeliveries = async () => {
       try {
         const response = await deliveriesAPI.getAll();
@@ -41,7 +49,7 @@ export default function DashboardPage() {
     };
 
     loadDeliveries();
-  }, []);
+  }, [router]);
 
   const getStatusBadge = (status: string) => {
     const colors = {
@@ -120,7 +128,7 @@ export default function DashboardPage() {
                   <div className="ml-5 w-0 flex-1">
                     <dl>
                       <dt className="truncate text-sm font-medium text-gray-500">Total Spent</dt>
-                      <dd className="text-lg font-semibold text-gray-900">${stats.totalSpent.toFixed(2)}</dd>
+                      <dd className="text-lg font-semibold text-gray-900">R{stats.totalSpent.toFixed(2)}</dd>
                     </dl>
                   </div>
                 </div>

@@ -10,7 +10,7 @@ export async function sendEmail(email: string, subject: string, _body: string): 
   return true;
 }
 
-export function showNotification(message: string, type: 'success' | 'error' | 'loading' = 'success') {
+export function showNotification(message: string, type: 'success' | 'error' | 'loading' | 'info' = 'success') {
   switch (type) {
     case 'success':
       toast.success(message);

@@ -53,10 +53,12 @@ export async function logout(): Promise<void> {
 
 export function isAuthenticated(): boolean {
   // Check if token exists and is valid
-  return typeof window !== 'undefined' && !!document.cookie.includes('auth-token');
+  if (typeof window === 'undefined') return false;
+  return !!document.cookie.includes('token=');
 }
 
 export function getUserRole(): string | null {
+  if (typeof document === 'undefined') return null;
   const match = document.cookie.match(/user-role=([^;]+)/);
   return match ? match[1] : null;
 }

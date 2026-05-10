@@ -97,3 +97,68 @@ export interface TrackingUpdate {
   description: string;
 }
 
+export interface Transaction {
+  _id: string;
+  orderNumber: string;
+  amount: number;
+  type: 'payment' | 'refund' | 'deposit';
+  status: 'pending' | 'completed' | 'failed';
+  description: string;
+  createdAt: Date;
+  paymentMethod?: string;
+}
+
+export interface BillingInfo {
+  balance: number;
+  totalSpent: number;
+  totalRefunds: number;
+  pendingPayments: number;
+  monthlySpending: {
+    month: string;
+    amount: number;
+  }[];
+  paymentMethods: {
+    id: string;
+    type: string;
+    last4: string;
+    isDefault: boolean;
+  }[];
+}
+
+export interface UserProfile {
+  name: string;
+  email: string;
+  phone: string;
+  companyName: string;
+  address: string;
+  city: string;
+  state: string;
+  zipCode: string;
+  country: string;
+  website: string;
+  notificationPreferences: {
+    email: boolean;
+    sms: boolean;
+    push: boolean;
+    orderUpdates: boolean;
+    promotions: boolean;
+  };
+  businessHours: {
+    monday: { enabled: boolean; start: string; end: string };
+    tuesday: { enabled: boolean; start: string; end: string };
+    wednesday: { enabled: boolean; start: string; end: string };
+    thursday: { enabled: boolean; start: string; end: string };
+    friday: { enabled: boolean; start: string; end: string };
+    saturday: { enabled: boolean; start: string; end: string };
+    sunday: { enabled: boolean; start: string; end: string };
+  };
+  defaultAddresses: {
+    pickupAddress: string;
+    returnAddress: string;
+  };
+  apiKeys: {
+    key: string;
+    secret: string;
+  }[];
+}
+

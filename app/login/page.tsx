@@ -20,7 +20,7 @@ export default function LoginPage() {
     try {
       const result = await login(email, password);
       if (result) {
-        document.cookie = `auth-token=${result.token}; path=/`;
+        document.cookie = `token=${result.token}; path=/`;
         document.cookie = `user-role=${result.user.role}; path=/`;
         showNotification('Login successful!', 'success');
         router.push(result.user.role === 'admin' ? '/admin' : '/dashboard');

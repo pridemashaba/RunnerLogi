@@ -118,16 +118,16 @@ export default function NewDeliveryPage() {
         {step === 'payment' && selectedCourier && (
           <div className="rounded-lg bg-white p-6 shadow-md">
             <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
-            <div className="border-t border-b py-4">
-              <div className="flex justify-between mb-2">
-                <span>Courier: {selectedCourier.name}</span>
-                <span>${selectedCourier.price.toFixed(2)}</span>
+              <div className="border-t border-b py-4">
+                <div className="flex justify-between mb-2">
+                  <span>Courier: {selectedCourier.name}</span>
+                  <span>R{selectedCourier.price.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between font-semibold">
+                  <span>Total</span>
+                  <span>R{selectedCourier.price.toFixed(2)}</span>
+                </div>
               </div>
-              <div className="flex justify-between font-semibold">
-                <span>Total</span>
-                <span>${selectedCourier.price.toFixed(2)}</span>
-              </div>
-            </div>
             <div className="mt-6">
               <button
                 onClick={handlePayment}

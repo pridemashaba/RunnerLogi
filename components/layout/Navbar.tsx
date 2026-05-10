@@ -1,7 +1,7 @@
 // components/layout/Navbar.tsx
 'use client';
 
-import { Fragment } from 'react';
+import { Fragment, useEffect, useState } from 'react';
 import { Disclosure, Menu, Transition } from '@headlessui/react';
 import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline';
 import Link from 'next/link';
@@ -30,10 +30,17 @@ const navigation = (role: string | null) => {
 
 export default function Navbar() {
   const router = useRouter();
-  const role = getUserRole();
+  const [role, setRole] = useState<string | null>(null);
+
+   useEffect(() => {
+     // Read role from cookie on client-side after mount
+     const userRole = getUserRole();
+     // eslint-disable-next-line react-hooks/set-state-in-effect
+     setRole(userRole);
+   }, []);
 
   const handleLogout = () => {
-    document.cookie = 'auth-token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+    document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     document.cookie = 'user-role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
     router.push('/login');
   };
