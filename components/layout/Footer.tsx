@@ -91,7 +91,7 @@ export default function Footer() {
               </li>
               <li>
                 <a href="tel:+27111234567" className="text-sm hover:text-white transition-colors">
-                  Call +27 11 123 4567
+                  Call +27 66 304 8659
                 </a>
               </li>
               <li>

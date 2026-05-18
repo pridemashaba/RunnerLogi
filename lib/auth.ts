@@ -1,58 +1,97 @@
+import { supabase } from '@/lib/supabaseClient';
 import { User } from '@/types';
 
-// Mock user database - replace with actual DB
-const mockUsers: User[] = [
-  {
-    id: '1',
-    email: 'runner@example.com',
-    name: 'John Runner',
-    role: 'runner',
-    phone: '+1234567890',
-    createdAt: new Date(),
-  },
-  {
-    id: '2',
-    email: 'admin@example.com',
-    name: 'Admin User',
-    role: 'admin',
-    createdAt: new Date(),
-  },
-];
-
 export async function login(email: string, password: string): Promise<{ user: User; token: string } | null> {
-  // Simulate API call
-  await new Promise(resolve => setTimeout(resolve, 1000));
+  const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+  });
 
-  const user = mockUsers.find(u => u.email === email);
-  if (user && password === 'password123') {
-    const token = btoa(JSON.stringify({ userId: user.id, role: user.role }));
-    return { user, token };
+  if (authError || !authData.user) {
+    return null;
   }
-  return null;
+
+  const userId = authData.user.id;
+
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', userId)
+    .single();
+
+  if (profileError || !profile) {
+    return null;
+  }
+
+  return {
+    token: authData.session?.access_token ?? '',
+    user: {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+      phone: profile.phone,
+      createdAt: profile.created_at ? new Date(profile.created_at) : new Date(),
+    },
+  };
 }
 
 export async function register(userData: Partial<User> & { password: string }): Promise<{ user: User; token: string } | null> {
-  await new Promise(resolve => setTimeout(resolve, 1000));
-
-  const newUser: User = {
-    id: Date.now().toString(),
+  const { data: authData, error: authError } = await supabase.auth.signUp({
     email: userData.email!,
-    name: userData.name!,
-    role: 'runner',
-    phone: userData.phone,
-    createdAt: new Date(),
-  };
+    password: userData.password,
+    options: {
+      data: {
+        name: userData.name,
+        phone: userData.phone,
+      },
+    },
+  });
 
-  const token = btoa(JSON.stringify({ userId: newUser.id, role: newUser.role }));
-  return { user: newUser, token };
+  if (authError || !authData.user) {
+    return null;
+  }
+
+  const userId = authData.user.id;
+
+  // Create profile in the profiles table
+  const { data: profile, error: profileError } = await supabase
+    .from('profiles')
+    .insert([
+      {
+        id: userId,
+        email: userData.email,
+        name: userData.name,
+        phone: userData.phone,
+        role: 'runner',
+        created_at: new Date().toISOString(),
+      },
+    ])
+    .select()
+    .single();
+
+  if (profileError || !profile) {
+    return null;
+  }
+
+  return {
+    token: authData.session?.access_token ?? '',
+    user: {
+      id: profile.id,
+      email: profile.email,
+      name: profile.name,
+      role: profile.role,
+      phone: profile.phone,
+      createdAt: profile.created_at ? new Date(profile.created_at) : new Date(),
+    },
+  };
 }
 
 export async function logout(): Promise<void> {
-  // Clear cookies/session
+  await supabase.auth.signOut();
 }
 
 export function isAuthenticated(): boolean {
-  // Check if token exists and is valid
   if (typeof window === 'undefined') return false;
   return !!document.cookie.includes('token=');
 }
