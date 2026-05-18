@@ -29,12 +29,12 @@ export default function RegisterPage() {
     setLoading(true);
 
     try {
-      const result = await register({
-        name: formData.name,
-        email: formData.email,
-        phone: formData.phone || undefined,
-        password: formData.password,
-      });
+const result = await register({
+  name: formData.name,
+  email: formData.email,
+  phone: formData.phone === '' ? undefined : formData.phone,
+  password: formData.password,
+});
 
       if (result) {
         document.cookie = `token=${result.token}; path=/`;
@@ -76,7 +76,7 @@ export default function RegisterPage() {
                 name="name"
                 type="text"
                 required
-                className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
+                className="mt-1 block w-full rounded-md border-gray-350 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
                 placeholder="John Doe"
                 value={formData.name}
                 onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
