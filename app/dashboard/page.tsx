@@ -65,11 +65,11 @@ export default function DashboardPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-primary-blue-light">
       <div className="py-10">
         <header>
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold leading-tight tracking-tight text-gray-900">
+            <h1 className="text-3xl font-bold leading-tight tracking-tight text-dark-text">
               Dashboard
             </h1>
           </div>
@@ -80,7 +80,7 @@ export default function DashboardPage() {
             <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
               <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 rounded-md bg-blue-500 p-3">
+                  <div className="flex-shrink-0 rounded-md bg-primary-blue p-3">
                     <Package className="h-6 w-6 text-white" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
@@ -94,7 +94,7 @@ export default function DashboardPage() {
 
               <div className="overflow-hidden rounded-lg bg-white px-4 py-5 shadow sm:p-6">
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 rounded-md bg-yellow-500 p-3">
+                  <div className="flex-shrink-0 rounded-md bg-accent-orange p-3">
                     <Truck className="h-6 w-6 text-white" />
                   </div>
                   <div className="ml-5 w-0 flex-1">
@@ -139,7 +139,7 @@ export default function DashboardPage() {
             <div className="mt-8">
               <Link
                 href="/deliveries/new"
-                className="inline-flex items-center rounded-md bg-blue-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
+                className="inline-flex items-center rounded-md bg-primary-blue px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-blue-500"
               >
                 + New Delivery
               </Link>
@@ -154,7 +154,7 @@ export default function DashboardPage() {
                       <Link href={`/deliveries/${delivery.id}`} className="block hover:bg-gray-50">
                         <div className="px-4 py-4 sm:px-6">
                           <div className="flex items-center justify-between">
-                            <p className="truncate text-sm font-medium text-blue-600">
+                            <p className="truncate text-sm font-medium text-primary-blue">
                               {delivery.customerName}
                             </p>
                             <div className="ml-2 flex flex-shrink-0">

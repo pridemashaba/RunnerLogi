@@ -68,11 +68,17 @@ export async function login(email: string, password: string): Promise<{ user: Us
   if (typeof window === 'undefined') return null;
 
   const users = getUsers();
+  console.log('[auth] login: users loaded:', users.length);
+
   const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
+  console.log('[auth] login: email match found:', !!found, 'email:', email);
   if (!found) return null;
 
   const passHash = hashPassword(password);
+  console.log('[auth] login: passwordHash matches:', found.passwordHash === passHash, 'userId:', found.id);
+
   if (found.passwordHash !== passHash) return null;
+
 
   const token = makeToken();
   const session: StoredSession = {

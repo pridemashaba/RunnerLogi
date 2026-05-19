@@ -19,14 +19,17 @@ export default function LoginPage() {
 
     try {
       const result = await login(email, password);
+
       if (result) {
-        document.cookie = `token=${result.token}; path=/`;
-        document.cookie = `user-role=${result.user.role}; path=/`;
+        // `lib/auth.ts` already sets token + user-role cookies.
         showNotification('Login successful!', 'success');
         router.push(result.user.role === 'admin' ? '/admin' : '/dashboard');
-      } else {
-        showNotification('Invalid credentials', 'error');
+        return;
       }
+
+      console.log('[login page] login() returned null for email:', email);
+      showNotification('Invalid credentials', 'error');
+
     } catch {
       showNotification('Login failed', 'error');
     } finally {
