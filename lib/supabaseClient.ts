@@ -1,6 +1,6 @@
-import { createClient } from "@supabase/supabase-js";
+// Supabase connection removed.
+// This app currently uses a localStorage + cookie based demo auth in `lib/auth.ts`.
+// Keeping this file would accidentally re-introduce Supabase usage; instead, we export nothing.
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+export const supabase = undefined as never;
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey);

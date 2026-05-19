@@ -20,7 +20,7 @@ export default function ContactPage() {
     try {
       // Simulate form submission
       await new Promise(resolve => setTimeout(resolve, 1000));
-      showNotification('Message sent successfully! We\'ll get back to you soon.', 'success');
+showNotification("Message sent successfully! We'll get back to you soon.", 'success');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch {
       showNotification('Failed to send message. Please try again.', 'error');

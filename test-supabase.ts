@@ -1,29 +1,9 @@
-import { config } from 'dotenv';
-config({ path: '.env.local' });
-
-import { supabase } from './lib/supabaseClient';
+// Supabase connection test removed.
+// This repo currently uses localStorage + cookies demo auth in `lib/auth.ts`.
 
 async function testConnection() {
-  try {
-    console.log('Testing Supabase connection...');
-    console.log('URL:', process.env.NEXT_PUBLIC_SUPABASE_URL);
-    console.log('Key present:', !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
-    
-    // Test basic connection by trying a simple query
-    const { data, error } = await supabase.from('profiles').select('count').limit(1);
-    
-    if (error) {
-      console.error('Supabase connection error:', error);
-      return false;
-    }
-    
-    console.log('Supabase connection successful!');
-    console.log('Query result:', data);
-    return true;
-  } catch (err) {
-    console.error('Unexpected error:', err);
-    return false;
-  }
+  console.log('Supabase tests removed (not configured in this build).');
 }
 
 testConnection();
+
