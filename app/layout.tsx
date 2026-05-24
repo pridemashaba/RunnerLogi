@@ -9,7 +9,7 @@ import Footer from '@/components/layout/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Runner Logistics Platform',
+  title: 'RunnerLogi | Delivery Platform for Social Media Sellers',
   description: 'Compare courier prices, delivery times, and shipping options for social media runners and online sellers.',
 };
 
