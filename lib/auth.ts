@@ -1,10 +1,13 @@
 import { User } from '@/types';
+import { supabase } from '@/lib/supabase';
 
-type StoredUser = Omit<User, 'createdAt'> & { passwordHash: string; createdAt: string };
+type StoredSession = {
+  token: string;
+  userId: string;
+  userRole: User['role'];
+  createdAt: string;
+};
 
-type StoredSession = { token: string; userId: string; userRole: User['role']; createdAt: string };
-
-const LS_USERS_KEY = 'soweto.users.v1';
 const LS_SESSION_KEY = 'soweto.session.v1';
 
 function safeJsonParse<T>(value: string | null): T | null {
@@ -14,16 +17,6 @@ function safeJsonParse<T>(value: string | null): T | null {
   } catch {
     return null;
   }
-}
-
-function getUsers(): StoredUser[] {
-  if (typeof window === 'undefined') return [];
-  return safeJsonParse<StoredUser[]>(window.localStorage.getItem(LS_USERS_KEY)) ?? [];
-}
-
-function setUsers(users: StoredUser[]) {
-  if (typeof window === 'undefined') return;
-  window.localStorage.setItem(LS_USERS_KEY, JSON.stringify(users));
 }
 
 function getSession(): StoredSession | null {
@@ -40,21 +33,7 @@ function setSession(session: StoredSession | null) {
   window.localStorage.setItem(LS_SESSION_KEY, JSON.stringify(session));
 }
 
-// Lightweight hash (demo only). Do NOT use for production auth.
-function hashPassword(password: string) {
-  let hash = 0;
-  for (let i = 0; i < password.length; i++) {
-    hash = (hash * 31 + password.charCodeAt(i)) >>> 0;
-  }
-  return `h_${hash.toString(16)}`;
-}
-
-function makeToken() {
-  return `t_${Math.random().toString(36).slice(2)}_${Date.now().toString(36)}`;
-}
-
 function setAuthCookies(session: StoredSession) {
-  // Keep compatibility with current app usage that reads token + user-role from cookies.
   document.cookie = `token=${session.token}; path=/; max-age=86400`;
   document.cookie = `user-role=${session.userRole}; path=/; max-age=86400`;
 }
@@ -64,83 +43,138 @@ function clearAuthCookies() {
   document.cookie = 'user-role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
 }
 
+export async function getUser() {
+  if (typeof window === 'undefined') return null;
+
+  const session = getSession();
+  if (!session) return null;
+
+  try {
+    const { data, error } = await supabase.auth.getUser();
+    if (error || !data.user) return null;
+
+    const email = data.user.email ?? '';
+    const name =
+      (data.user.user_metadata as Record<string, string> | undefined)?.name ||
+      (data.user.user_metadata as Record<string, string> | undefined)?.full_name ||
+      email.split('@')[0];
+
+    return {
+      id: data.user.id,
+      email,
+      name,
+      role: session.userRole,
+      createdAt: new Date(data.user.created_at),
+    } satisfies User;
+  } catch {
+    return null;
+  }
+}
+
 export async function login(email: string, password: string): Promise<{ user: User; token: string } | null> {
   if (typeof window === 'undefined') return null;
 
-  const users = getUsers();
-  console.log('[auth] login: users loaded:', users.length);
+  try {
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+    if (error || !data.user || !data.session) return null;
 
-  const found = users.find((u) => u.email.toLowerCase() === email.toLowerCase());
-  console.log('[auth] login: email match found:', !!found, 'email:', email);
-  if (!found) return null;
+    const token = data.session.access_token;
+    const role = ((data.user.user_metadata as Record<string, string> | undefined)?.role as User['role']) || 'runner';
 
-  const passHash = hashPassword(password);
-  console.log('[auth] login: passwordHash matches:', found.passwordHash === passHash, 'userId:', found.id);
+    const storedSession: StoredSession = {
+      token,
+      userId: data.user.id,
+      userRole: role,
+      createdAt: new Date().toISOString(),
+    };
 
-  if (found.passwordHash !== passHash) return null;
+    setSession(storedSession);
+    setAuthCookies(storedSession);
 
-
-  const token = makeToken();
-  const session: StoredSession = {
-    token,
-    userId: found.id,
-    userRole: found.role,
-    createdAt: new Date().toISOString(),
-  };
-
-  setSession(session);
-  setAuthCookies(session);
-
-  return {
-    token,
-    user: {
-      id: found.id,
-      email: found.email,
-      name: found.name,
-      role: found.role,
-      phone: found.phone,
-      createdAt: new Date(found.createdAt),
-    },
-  };
+    return {
+      token,
+      user: {
+        id: data.user.id,
+        email: data.user.email ?? '',
+        name:
+          (data.user.user_metadata as Record<string, string> | undefined)?.name ||
+          (data.user.user_metadata as Record<string, string> | undefined)?.full_name ||
+          email.split('@')[0],
+        role,
+        createdAt: new Date(data.user.created_at),
+      },
+    };
+  } catch {
+    return null;
+  }
 }
 
 export async function register(
-  userData: Partial<User> & { password: string }
+  userData: { name?: string; email: string; phone?: string; password: string }
 ): Promise<{ user: User; token: string } | null> {
   if (typeof window === 'undefined') return null;
 
-  const name = userData.name?.trim();
-  const email = userData.email?.trim();
-  const phone = userData.phone?.trim();
-  const password = userData.password;
+  try {
+    const { name, email, password } = userData;
 
-  if (!name || !email || !password) return null;
+    const metadata: Record<string, string> = {
+      name: name?.trim() ?? email.split('@')[0],
+    };
+    if (userData.phone && userData.phone.trim()) {
+      metadata.phone = userData.phone.trim();
+    }
 
-  const users = getUsers();
-  const emailTaken = users.some((u) => u.email.toLowerCase() === email.toLowerCase());
-  if (emailTaken) return null;
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: metadata,
+      },
+    });
 
-  const id = `u_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    if (error || !data.user || !data.session) {
+      console.error('[auth] register error:', error?.message);
+      return null;
+    }
 
-  const newUser: StoredUser = {
-    id,
-    email,
-    name,
-    phone: phone || undefined,
-    role: 'runner',
-    createdAt: new Date().toISOString(),
-    passwordHash: hashPassword(password),
-  };
+    const token = data.session.access_token;
+    const role: User['role'] = 'runner';
 
-  users.unshift(newUser);
-  setUsers(users);
+    const storedSession: StoredSession = {
+      token,
+      userId: data.user.id,
+      userRole: role,
+      createdAt: new Date().toISOString(),
+    };
 
-  // Auto-login after register
-  return login(email, password);
+    setSession(storedSession);
+    setAuthCookies(storedSession);
+
+    return {
+      token,
+      user: {
+        id: data.user.id,
+        email: data.user.email ?? '',
+        name: metadata.name,
+        role,
+        phone: metadata.phone,
+        createdAt: new Date(data.user.created_at),
+      },
+    };
+  } catch (error) {
+    console.error('[auth] register failed:', error);
+    return null;
+  }
 }
 
 export async function logout(): Promise<void> {
   if (typeof window !== 'undefined') {
+    try {
+      await supabase.auth.signOut();
+    } catch {
+      // best effort logout
+    }
     setSession(null);
     clearAuthCookies();
   }
@@ -148,12 +182,276 @@ export async function logout(): Promise<void> {
 
 export function isAuthenticated(): boolean {
   if (typeof window === 'undefined') return false;
-  return !!document.cookie.match(/token=([^;]+)/);
+  return !!window.localStorage.getItem(LS_SESSION_KEY);
 }
 
-export function getUserRole(): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(/user-role=([^;]+)/);
-  return match ? match[1] : null;
+export function getSessionRole(): string | null {
+  if (typeof window === 'undefined') return null;
+  const session = getSession();
+  return session?.userRole ?? null;
 }
 
+export async function updateUserProfile(updates: Record<string, unknown>) {
+  if (typeof window === 'undefined') return null;
+  const session = getSession();
+  if (!session) return null;
+
+  try {
+    const { error } = await supabase
+      .from('profiles')
+      .upsert({ id: session.userId, ...updates }, { onConflict: 'id' });
+
+    if (error) {
+      console.error('[auth] updateUserProfile error:', error);
+      return null;
+    }
+
+    return { id: session.userId, ...updates };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchUserProfile() {
+  const session = getSession();
+  if (!session) return null;
+
+  try {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.userId)
+      .single();
+
+    if (error) {
+      console.error('[auth] fetchUserProfile error:', error);
+      return null;
+    }
+
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+}
+
+function getSession(): StoredSession | null {
+  if (typeof window === 'undefined') return null;
+  return safeJsonParse<StoredSession>(window.localStorage.getItem(LS_SESSION_KEY));
+}
+
+function setSession(session: StoredSession | null) {
+  if (typeof window === 'undefined') return;
+  if (!session) {
+    window.localStorage.removeItem(LS_SESSION_KEY);
+    return;
+  }
+  window.localStorage.setItem(LS_SESSION_KEY, JSON.stringify(session));
+}
+
+function setAuthCookies(session: StoredSession) {
+  document.cookie = `token=${session.token}; path=/; max-age=86400`;
+  document.cookie = `user-role=${session.userRole}; path=/; max-age=86400`;
+}
+
+function clearAuthCookies() {
+  document.cookie = 'token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+  document.cookie = 'user-role=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+}
+
+export async function getUser() {
+  if (typeof window === 'undefined') return null;
+
+  const session = getSession();
+  if (!session) return null;
+
+  try {
+    const client = await getSupabaseClient();
+    const { data, error } = await client.auth.getUser();
+    if (error || !data.user) return null;
+
+    const email = data.user.email ?? '';
+    const name =
+      (data.user.user_metadata as Record<string, string> | undefined)?.name ||
+      (data.user.user_metadata as Record<string, string> | undefined)?.full_name ||
+      email.split('@')[0];
+
+    return {
+      id: data.user.id,
+      email,
+      name,
+      role: session.userRole,
+      createdAt: new Date(data.user.created_at),
+    } satisfies User;
+  } catch {
+    return null;
+  }
+}
+
+export async function login(email: string, password: string): Promise<{ user: User; token: string } | null> {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const client = await getSupabaseClient();
+    const { data, error } = await client.auth.signInWithPassword({ email, password });
+    if (error || !data.user || !data.session) return null;
+
+    const token = data.session.access_token;
+    const role = ((data.user.user_metadata as Record<string, string> | undefined)?.role as User['role']) || 'runner';
+
+    const storedSession: StoredSession = {
+      token,
+      userId: data.user.id,
+      userRole: role,
+      createdAt: new Date().toISOString(),
+    };
+
+    setSession(storedSession);
+    setAuthCookies(storedSession);
+
+    return {
+      token,
+      user: {
+        id: data.user.id,
+        email: data.user.email ?? '',
+        name:
+          (data.user.user_metadata as Record<string, string> | undefined)?.name ||
+          (data.user.user_metadata as Record<string, string> | undefined)?.full_name ||
+          email.split('@')[0],
+        role,
+        createdAt: new Date(data.user.created_at),
+      },
+    };
+  } catch {
+    return null;
+  }
+}
+
+export async function register(
+  userData: { name?: string; email: string; phone?: string; password: string }
+): Promise<{ user: User; token: string } | null> {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const { name, email, password } = userData;
+
+    const metadata: Record<string, string> = {
+      name: name?.trim() ?? email.split('@')[0],
+    };
+    if (userData.phone && userData.phone.trim()) {
+      metadata.phone = userData.phone.trim();
+    }
+
+    const client = await getSupabaseClient();
+    const { data, error } = await client.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: `${window.location.origin}/auth/callback`,
+        data: metadata,
+      },
+    });
+
+    if (error || !data.user || !data.session) {
+      console.error('[auth] register error:', error?.message);
+      return null;
+    }
+
+    const token = data.session.access_token;
+    const role: User['role'] = 'runner';
+
+    const storedSession: StoredSession = {
+      token,
+      userId: data.user.id,
+      userRole: role,
+      createdAt: new Date().toISOString(),
+    };
+
+    setSession(storedSession);
+    setAuthCookies(storedSession);
+
+    return {
+      token,
+      user: {
+        id: data.user.id,
+        email: data.user.email ?? '',
+        name: metadata.name,
+        role,
+        phone: metadata.phone,
+        createdAt: new Date(data.user.created_at),
+      },
+    };
+  } catch (error) {
+    console.error('[auth] register failed:', error);
+    return null;
+  }
+}
+
+export async function logout(): Promise<void> {
+  if (typeof window !== 'undefined') {
+    try {
+      await getSupabaseClient().then(client => client.auth.signOut());
+    } catch {
+      // best effort logout
+    }
+    setSession(null);
+    clearAuthCookies();
+  }
+}
+
+export function isAuthenticated(): boolean {
+  if (typeof window === 'undefined') return false;
+  return !!window.localStorage.getItem(LS_SESSION_KEY);
+}
+
+export function getSessionRole(): string | null {
+  if (typeof window === 'undefined') return null;
+  const session = getSession();
+  return session?.userRole ?? null;
+}
+
+export async function updateUserProfile(updates: Record<string, unknown>) {
+  if (typeof window === 'undefined') return null;
+  const session = getSession();
+  if (!session) return null;
+
+  try {
+    const client = await getSupabaseClient();
+    const { error } = await client
+      .from('profiles')
+      .upsert({ id: session.userId, ...updates }, { onConflict: 'id' });
+
+    if (error) {
+      console.error('[auth] updateUserProfile error:', error);
+      return null;
+    }
+
+    return { id: session.userId, ...updates };
+  } catch {
+    return null;
+  }
+}
+
+export async function fetchUserProfile() {
+  const session = getSession();
+  if (!session) return null;
+
+  try {
+    const client = await getSupabaseClient();
+    const { data, error } = await client
+      .from('profiles')
+      .select('*')
+      .eq('id', session.userId)
+      .single();
+
+    if (error) {
+      console.error('[auth] fetchUserProfile error:', error);
+      return null;
+    }
+
+    return data;
+  } catch {
+    return null;
+  }
+}

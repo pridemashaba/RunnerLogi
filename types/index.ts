@@ -21,15 +21,17 @@ export interface Address {
 }
 
 export interface PackageDetails {
-  weight: number; // in kg
-  dimensions: {
+  weight?: number;
+  dimensions?: string;
+  description?: string;
+  quantity?: number;
+  dimensionsObj?: {
     length: number;
     width: number;
     height: number;
   };
-  description: string;
-  isFragile: boolean;
-  value: number;
+  isFragile?: boolean;
+  value?: number;
 }
 
 export type DeliveryStatus =
@@ -45,13 +47,18 @@ export type DeliveryStatus =
 
 export interface CourierOption {
   courierId: string;
+  id?: string;
   name: string;
   price: number;
+  estimatedDays?: string;
   durationHours: number;
   eta: Date;
   trackingSupported: boolean;
   serviceLevel: 'economy' | 'standard' | 'express';
-  rating: number;
+  description?: string;
+  features?: string[];
+  logo?: string;
+  rating?: number;
 }
 
 export interface Courier {

@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DeliveryForm } from '@/components/forms/DeliveryForm';
 import { CourierComparisonTable } from '@/components/courier/CourierComparisonTable';
-import { Delivery, CourierOption } from '@/types';
+import { Delivery, CourierOption, Address } from '@/types';
 import { deliveriesAPI } from '@/lib/api';
 import { fetchCourierRates } from '@/services/courierService';
 import { showNotification } from '@/services/notificationService';
@@ -23,9 +23,12 @@ export default function NewDeliveryPage() {
     setDeliveryData(data);
 
     try {
+      const pickupAddressString = formatAddressToString(data.pickupAddress!);
+      const deliveryAddressString = formatAddressToString(data.deliveryAddress!);
+
       const rates = await fetchCourierRates(
-        data.pickupAddress!,
-        data.deliveryAddress!,
+        pickupAddressString,
+        deliveryAddressString,
         data.packageDetails!
       );
       setCourierOptions(rates);
@@ -35,6 +38,10 @@ export default function NewDeliveryPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatAddressToString = (address: Address): string => {
+    return `${address.street}, ${address.city}, ${address.state}, ${address.zipCode}, ${address.country}`;
   };
 
   const handleSelectCourier = (courier: CourierOption) => {
