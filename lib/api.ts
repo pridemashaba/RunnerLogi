@@ -65,7 +65,8 @@ let mockDeliveries: Delivery[] = [
     },
     packageDetails: {
       weight: 2.5,
-      dimensions: { length: 12, width: 8, height: 6 },
+      // NOTE: `PackageDetails.dimensions` is typed as `string` in this repo.
+      dimensions: '12x8x6',
       description: 'Electronics - Laptop',
       isFragile: true,
       value: 1200,
@@ -108,7 +109,8 @@ let mockDeliveries: Delivery[] = [
     },
     packageDetails: {
       weight: 5.0,
-      dimensions: { length: 24, width: 12, height: 10 },
+      // NOTE: `PackageDetails.dimensions` is typed as `string` in this repo.
+      dimensions: '24x12x10',
       description: 'Furniture - Chair',
       isFragile: false,
       value: 350,

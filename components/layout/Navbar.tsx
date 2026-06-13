@@ -47,9 +47,9 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+<Link href="/login" className="bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
               Sign In
-            </button>
+            </Link>
           </div>
 
           {/* Mobile menu button */}
@@ -86,9 +86,9 @@ export default function Navbar() {
                 {item.name}
               </Link>
             ))}
-            <button className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
+            <Link href="/login" className="w-full bg-blue-600 text-white px-4 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">
               Sign In
-            </button>
+            </Link>
           </div>
         </div>
       )}

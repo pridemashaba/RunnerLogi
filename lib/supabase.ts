@@ -1,19 +1,48 @@
 import { createBrowserClient } from '@supabase/ssr';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!;
-const publishableKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
-const fallbackAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabaseKey = publishableKey || fallbackAnonKey!;
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseKey =
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+  process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
 
-export const supabase = createClient(supabaseUrl, supabaseKey);
+function hasSupabaseEnv() {
+  return Boolean(supabaseUrl && supabaseKey);
+}
 
-export async function getSupabaseClient() {
-  if (!supabaseUrl || !supabaseKey) {
+function createSupabaseClient() {
+  if (!hasSupabaseEnv()) {
     throw new Error('Missing Supabase env vars');
   }
+  return createClient(supabaseUrl as string, supabaseKey as string);
+}
 
-  return createBrowserClient(supabaseUrl, supabaseKey);
+function createBrowserSupabaseClient() {
+  if (!hasSupabaseEnv()) {
+    throw new Error('Missing Supabase env vars');
+  }
+  return createBrowserClient(supabaseUrl as string, supabaseKey as string);
+}
+
+let cachedBrowserClient: ReturnType<typeof createBrowserSupabaseClient> | undefined;
+
+export const supabase = (() => {
+  try {
+    return createSupabaseClient();
+  } catch {
+    return undefined as never;
+  }
+})();
+
+export async function getSupabaseClient() {
+  if (cachedBrowserClient) return cachedBrowserClient;
+
+  try {
+    cachedBrowserClient = createBrowserSupabaseClient();
+    return cachedBrowserClient;
+  } catch {
+    return undefined as never;
+  }
 }
 
 export const signUp = async (email: string, password: string) => {

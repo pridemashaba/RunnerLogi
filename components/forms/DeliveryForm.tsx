@@ -30,7 +30,9 @@ export function DeliveryForm({ onSubmit, loading }: Props) {
     },
     packageDetails: {
       weight: 1,
-      dimensions: { length: 10, width: 10, height: 10 },
+      // NOTE: `PackageDetails.dimensions` is typed as `string` in this repo.
+      // Keep it as a string to satisfy the type checker.
+      dimensions: '10x10x10',
       description: '',
       isFragile: false,
       value: 0,
