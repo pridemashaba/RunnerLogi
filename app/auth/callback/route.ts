@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -69,4 +70,13 @@ export async function GET(request: Request) {
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));
+=======
+import { NextResponse } from 'next/server';
+
+export async function GET(request: Request) {
+  const requestUrl = new URL(request.url);
+  return NextResponse.redirect(
+    new URL('/dashboard', requestUrl.origin)
+  );
+>>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 }

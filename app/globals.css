@@ -1,5 +1,6 @@
 @import "tailwindcss";
 
+<<<<<<< HEAD
 :root {
   --color-primary: #3b82f6;
   --color-secondary: #6b7280;
@@ -14,6 +15,8 @@
   color: var(--color-text);
 }
 
+=======
+>>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 /* Toggle switch for notifications */
 .toggle-switch {
   position: relative;

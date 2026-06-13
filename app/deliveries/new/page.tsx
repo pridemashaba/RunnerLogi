@@ -5,7 +5,11 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DeliveryForm } from '@/components/forms/DeliveryForm';
 import { CourierComparisonTable } from '@/components/courier/CourierComparisonTable';
+<<<<<<< HEAD
 import { Delivery, CourierOption, Address } from '@/types';
+=======
+import { Delivery, CourierOption } from '@/types';
+>>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 import { deliveriesAPI } from '@/lib/api';
 import { fetchCourierRates } from '@/services/courierService';
 import { showNotification } from '@/services/notificationService';
@@ -23,12 +27,18 @@ export default function NewDeliveryPage() {
     setDeliveryData(data);
 
     try {
+<<<<<<< HEAD
       const pickupAddressString = formatAddressToString(data.pickupAddress!);
       const deliveryAddressString = formatAddressToString(data.deliveryAddress!);
 
       const rates = await fetchCourierRates(
         pickupAddressString,
         deliveryAddressString,
+=======
+      const rates = await fetchCourierRates(
+        data.pickupAddress!,
+        data.deliveryAddress!,
+>>>>>>> 3e26547132126c075e46fffc19579da740bdea12
         data.packageDetails!
       );
       setCourierOptions(rates);
@@ -40,10 +50,13 @@ export default function NewDeliveryPage() {
     }
   };
 
+<<<<<<< HEAD
   const formatAddressToString = (address: Address): string => {
     return `${address.street}, ${address.city}, ${address.state}, ${address.zipCode}, ${address.country}`;
   };
 
+=======
+>>>>>>> 3e26547132126c075e46fffc19579da740bdea12
   const handleSelectCourier = (courier: CourierOption) => {
     setSelectedCourier(courier);
     setStep('payment');
