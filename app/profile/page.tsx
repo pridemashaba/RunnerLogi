@@ -1,11 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { fetchUserProfile, updateUserProfile, isAuthenticated } from '@/lib/auth';
+import { fetchUserProfile, updateUserProfile } from '@/lib/auth-client';
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
@@ -23,11 +21,6 @@ export default function ProfilePage() {
   });
 
   useEffect(() => {
-    if (!isAuthenticated()) {
-      router.push('/login');
-      return;
-    }
-
     let isMounted = true;
 
     const loadProfile = async () => {
@@ -57,7 +50,7 @@ export default function ProfilePage() {
     return () => {
       isMounted = false;
     };
-  }, [router]);
+  }, []);
 
   const handleChange = (field: string, value: string) => {
     setProfile((prev) => ({ ...prev, [field]: value }));

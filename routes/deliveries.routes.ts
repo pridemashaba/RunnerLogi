@@ -1,7 +1,7 @@
 import { Router, Request, Response } from 'express';
-import { GoogleMapsService } from '../services/google-maps.service';
-import { PricingService } from '../services/pricing.service';
-import { DeliveryEstimateRequest, DeliveryEstimateResponse } from '@/types/api.types';
+import { GoogleMapsService } from '../services/google-maps.service.ts';
+import { PricingService } from '../services/pricing.service.ts';
+import { DeliveryEstimateRequest, DeliveryEstimateResponse } from '../types/api.types.ts';
 
 const router = Router();
 const googleMapsService = new GoogleMapsService(process.env.GOOGLE_MAPS_API_KEY!);

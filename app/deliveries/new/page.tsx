@@ -5,18 +5,14 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { DeliveryForm } from '@/components/forms/DeliveryForm';
 import { CourierComparisonTable } from '@/components/courier/CourierComparisonTable';
-<<<<<<< HEAD
-import { Delivery, CourierOption, Address } from '@/types';
-=======
 import { Delivery, CourierOption } from '@/types';
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 import { deliveriesAPI } from '@/lib/api';
 import { fetchCourierRates } from '@/services/courierService';
 import { showNotification } from '@/services/notificationService';
 
 export default function NewDeliveryPage() {
   const router = useRouter();
-  const [step, setStep] = useState<'form' | 'compare' | 'payment'>('form');
+  const [step, setStep] = useState<'form' | 'compare' | 'confirm'>('form');
   const [deliveryData, setDeliveryData] = useState<Partial<Delivery>>({});
   const [courierOptions, setCourierOptions] = useState<CourierOption[]>([]);
   const [selectedCourier, setSelectedCourier] = useState<CourierOption | null>(null);
@@ -27,18 +23,9 @@ export default function NewDeliveryPage() {
     setDeliveryData(data);
 
     try {
-<<<<<<< HEAD
-      const pickupAddressString = formatAddressToString(data.pickupAddress!);
-      const deliveryAddressString = formatAddressToString(data.deliveryAddress!);
-
-      const rates = await fetchCourierRates(
-        pickupAddressString,
-        deliveryAddressString,
-=======
       const rates = await fetchCourierRates(
         data.pickupAddress!,
         data.deliveryAddress!,
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
         data.packageDetails!
       );
       setCourierOptions(rates);
@@ -50,25 +37,18 @@ export default function NewDeliveryPage() {
     }
   };
 
-<<<<<<< HEAD
-  const formatAddressToString = (address: Address): string => {
-    return `${address.street}, ${address.city}, ${address.state}, ${address.zipCode}, ${address.country}`;
-  };
-
-=======
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
   const handleSelectCourier = (courier: CourierOption) => {
     setSelectedCourier(courier);
-    setStep('payment');
+    setStep('confirm');
   };
 
-  const handlePayment = async () => {
+  const handleConfirm = async () => {
     setLoading(true);
     try {
       const deliveryToCreate = {
         ...deliveryData,
         selectedCourier: selectedCourier!,
-        status: 'payment_pending' as const,
+        status: 'confirmed' as const,
         price: selectedCourier!.price,
       };
 
@@ -95,12 +75,12 @@ export default function NewDeliveryPage() {
         {/* Progress Steps */}
         <div className="mb-8">
           <div className="flex items-center justify-between">
-            {['Delivery Details', 'Compare Couriers', 'Payment'].map((label, index) => (
+            {['Delivery Details', 'Compare Couriers', 'Confirm'].map((label, index) => (
               <div key={label} className="flex items-center">
                 <div className={`flex h-8 w-8 items-center justify-center rounded-full ${
-                  index === ['form', 'compare', 'payment'].indexOf(step)
+                  index === ['form', 'compare', 'confirm'].indexOf(step)
                     ? 'bg-blue-600 text-white'
-                    : index < ['form', 'compare', 'payment'].indexOf(step)
+                    : index < ['form', 'compare', 'confirm'].indexOf(step)
                     ? 'bg-green-500 text-white'
                     : 'bg-gray-200 text-gray-500'
                 }`}>
@@ -135,9 +115,9 @@ export default function NewDeliveryPage() {
           </div>
         )}
 
-        {step === 'payment' && selectedCourier && (
+        {step === 'confirm' && selectedCourier && (
           <div className="rounded-lg bg-white p-6 shadow-md">
-            <h2 className="text-xl font-semibold mb-4">Payment Summary</h2>
+            <h2 className="text-xl font-semibold mb-4">Confirm Delivery</h2>
               <div className="border-t border-b py-4">
                 <div className="flex justify-between mb-2">
                   <span>Courier: {selectedCourier.name}</span>
@@ -150,11 +130,11 @@ export default function NewDeliveryPage() {
               </div>
             <div className="mt-6">
               <button
-                onClick={handlePayment}
+                onClick={handleConfirm}
                 disabled={loading}
                 className="w-full rounded-md bg-blue-600 px-4 py-2 text-white hover:bg-blue-700 disabled:opacity-50"
               >
-                {loading ? 'Processing...' : 'Confirm & Pay'}
+                {loading ? 'Processing...' : 'Confirm Delivery'}
               </button>
             </div>
             <div className="mt-4">

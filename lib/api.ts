@@ -1,17 +1,16 @@
 import axios from 'axios';
 import { Delivery, CourierOption, TrackingUpdate, Address, PackageDetails } from '@/types';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api';
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || '/api';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },
-  timeout: 10000,
+  timeout: 30000,
 });
 
-// Add auth token to requests
 api.interceptors.request.use((config) => {
   if (typeof document !== 'undefined') {
     const token = document.cookie.match(/token=([^;]+)/)?.[1];
@@ -22,270 +21,107 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Response interceptor to handle auth errors
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
       if (typeof window !== 'undefined') {
-        window.location.href = '/login';
+        window.location.href = '/';
       }
+    } else if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+      error.message = 'The request timed out. Please check your connection and try again.';
     }
     return Promise.reject(error);
   }
 );
 
-// Detect if we should use mock mode (no backend running)
-const isMockMode = () => {
-  if (typeof window === 'undefined') return false;
-  return !process.env.NEXT_PUBLIC_API_URL;
-};
-
-// In-memory mock data
-let mockDeliveries: Delivery[] = [
-  {
-    id: 'del_001',
-    runnerId: '1',
-    customerName: 'Alice Johnson',
-    customerEmail: 'alice@example.com',
-    customerPhone: '+1234567890',
-    deliveryAddress: {
-      street: '123 Main St',
-      city: 'San Francisco',
-      state: 'CA',
-      zipCode: '94102',
+function mapDbDeliveryToType(row: Record<string, unknown>): Delivery {
+  return {
+    id: row.id as string,
+    runnerId: (row.assigned_courier_runner as string) || '',
+    customerName: row.customer_name as string,
+    customerEmail: row.customer_email as string,
+    customerPhone: row.customer_phone as string,
+    pickupAddress: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
       country: 'US',
     },
-    pickupAddress: {
-      street: '456 Warehouse Blvd',
-      city: 'Oakland',
-      state: 'CA',
-      zipCode: '94607',
+    deliveryAddress: {
+      street: '',
+      city: '',
+      state: '',
+      zipCode: '',
       country: 'US',
     },
     packageDetails: {
-      weight: 2.5,
-<<<<<<< HEAD
-      // NOTE: `PackageDetails.dimensions` is typed as `string` in this repo.
-      dimensions: '12x8x6',
-=======
-      dimensions: { length: 12, width: 8, height: 6 },
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
-      description: 'Electronics - Laptop',
-      isFragile: true,
-      value: 1200,
+      weight: Number(row.weight_kg) || 0,
+      dimensions: (row.dimensions as string) || '',
+      description: (row.description as string) || '',
+      isFragile: (row.is_fragile as boolean) || false,
+      value: Number(row.declared_value) || 0,
     },
-    status: 'in_transit',
-    price: 24.99,
-    paymentStatus: 'paid',
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-    selectedCourier: {
-      courierId: 'ups_next_day',
-      name: 'UPS Next Day Air',
-      price: 24.99,
-      durationHours: 24,
-      eta: new Date(Date.now() + 24 * 60 * 60 * 1000),
-      trackingSupported: true,
-      serviceLevel: 'express',
-      rating: 4.8,
-    },
-  },
-  {
-    id: 'del_002',
-    runnerId: '1',
-    customerName: 'Bob Smith',
-    customerEmail: 'bob@example.com',
-    customerPhone: '+1987654321',
-    deliveryAddress: {
-      street: '789 Market St',
-      city: 'San Diego',
-      state: 'CA',
-      zipCode: '92101',
-      country: 'US',
-    },
-    pickupAddress: {
-      street: '101 Industrial Way',
-      city: 'Los Angeles',
-      state: 'CA',
-      zipCode: '90001',
-      country: 'US',
-    },
-    packageDetails: {
-      weight: 5.0,
-<<<<<<< HEAD
-      // NOTE: `PackageDetails.dimensions` is typed as `string` in this repo.
-      dimensions: '24x12x10',
-=======
-      dimensions: { length: 24, width: 12, height: 10 },
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
-      description: 'Furniture - Chair',
-      isFragile: false,
-      value: 350,
-    },
-    status: 'delivered',
-    price: 45.5,
-    paymentStatus: 'paid',
-    createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-    updatedAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    estimatedDelivery: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    actualDelivery: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-    selectedCourier: {
-      courierId: 'fedex_ground',
-      name: 'FedEx Ground',
-      price: 45.5,
-      durationHours: 48,
-      eta: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
-      trackingSupported: true,
-      serviceLevel: 'standard',
-      rating: 4.5,
-    },
-  },
-];
+    status: row.status as Delivery['status'],
+    trackingNumber: row.tracking_number as string | undefined,
+    createdAt: new Date(row.created_at as string),
+    updatedAt: new Date(row.updated_at as string),
+    estimatedDelivery: row.estimated_delivery ? new Date(row.estimated_delivery as string) : undefined,
+    actualDelivery: row.actual_delivery ? new Date(row.actual_delivery as string) : undefined,
+    price: Number(row.price) || 0,
+    paymentStatus: (row.payment_status as Delivery['paymentStatus']) || 'pending',
+  };
+}
 
 export const deliveriesAPI = {
   getAll: async () => {
-    if (isMockMode()) {
-      return { data: mockDeliveries };
+    const response = await api.get('/deliveries');
+    const rows = response.data;
+    if (!Array.isArray(rows)) {
+      const message = (rows && (rows as Record<string, unknown>).error) || 'Failed to load deliveries';
+      throw new Error(String(message));
     }
-    return api.get<Delivery[]>('/deliveries');
+    return { data: (rows as Record<string, unknown>[]).map(mapDbDeliveryToType) };
   },
   getById: async (id: string) => {
-    if (isMockMode()) {
-      const delivery = mockDeliveries.find((d) => d.id === id);
-      if (!delivery) throw new Error('Delivery not found');
-      return { data: delivery };
-    }
-    return api.get<Delivery>(`/deliveries/${id}`);
+    const response = await api.get<Record<string, unknown>>(`/deliveries/${id}`);
+    return { data: mapDbDeliveryToType(response.data) };
   },
   create: async (data: Partial<Delivery>) => {
-    if (isMockMode()) {
-      const newDelivery: Delivery = {
-        id: `del_${Date.now()}`,
-        runnerId: '1',
-        customerName: data.customerName || 'Unknown',
-        customerEmail: data.customerEmail || '',
-        customerPhone: data.customerPhone || '',
-        pickupAddress: data.pickupAddress!,
-        deliveryAddress: data.deliveryAddress!,
-        packageDetails: data.packageDetails!,
-        selectedCourier: data.selectedCourier,
-        status: 'pending',
-        price: data.price || 0,
-        paymentStatus: 'pending',
-        createdAt: new Date(),
-        updatedAt: new Date(),
-      };
-      mockDeliveries.unshift(newDelivery);
-      return { data: newDelivery };
-    }
-    return api.post<Delivery>('/deliveries', data);
+    const response = await api.post<Record<string, unknown>>('/deliveries', data);
+    return { data: mapDbDeliveryToType(response.data) };
   },
   update: async (id: string, data: Partial<Delivery>) => {
-    if (isMockMode()) {
-      const index = mockDeliveries.findIndex((d) => d.id === id);
-      if (index === -1) throw new Error('Delivery not found');
-      mockDeliveries[index] = { ...mockDeliveries[index], ...data, updatedAt: new Date() };
-      return { data: mockDeliveries[index] };
-    }
-    return api.put<Delivery>(`/deliveries/${id}`, data);
+    const response = await api.put<Record<string, unknown>>(`/deliveries/${id}`, data);
+    return { data: mapDbDeliveryToType(response.data) };
   },
   delete: async (id: string) => {
-    if (isMockMode()) {
-      mockDeliveries = mockDeliveries.filter((d) => d.id !== id);
-      return { data: { success: true } };
-    }
-    return api.delete(`/deliveries/${id}`);
+    await api.delete(`/deliveries/${id}`);
+    return { data: { success: true } };
   },
 };
 
 export const courierAPI = {
   getRates: async (deliveryData: { pickupAddress: Address; deliveryAddress: Address; packageDetails: PackageDetails }) => {
-    if (isMockMode()) {
-      const rates: CourierOption[] = [
-        {
-          courierId: 'fedex_ground',
-          name: 'FedEx Ground',
-          price: 8.99,
-          durationHours: 48,
-          eta: new Date(Date.now() + 48 * 60 * 60 * 1000),
-          trackingSupported: true,
-          serviceLevel: 'standard',
-          rating: 4.5,
-        },
-        {
-          courierId: 'ups_next_day',
-          name: 'UPS Next Day Air',
-          price: 24.99,
-          durationHours: 24,
-          eta: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          trackingSupported: true,
-          serviceLevel: 'express',
-          rating: 4.8,
-        },
-        {
-          courierId: 'usps_priority',
-          name: 'USPS Priority Mail',
-          price: 7.49,
-          durationHours: 72,
-          eta: new Date(Date.now() + 72 * 60 * 60 * 1000),
-          trackingSupported: true,
-          serviceLevel: 'economy',
-          rating: 4.2,
-        },
-      ];
-      return { data: rates };
-    }
     return api.post<CourierOption[]>('/couriers/rates', deliveryData);
   },
   selectCourier: async (deliveryId: string, courierId: string) => {
-    if (isMockMode()) {
-      return { data: { success: true, trackingNumber: `TRK${Date.now()}` } };
-    }
     return api.post(`/couriers/select`, { deliveryId, courierId });
   },
 };
 
 export const trackingAPI = {
   getTracking: async (trackingNumber: string) => {
-    if (isMockMode()) {
-      const updates: TrackingUpdate[] = [
-        {
-          status: 'confirmed',
-          location: 'Warehouse',
-          timestamp: new Date(Date.now() - 24 * 60 * 60 * 1000),
-          description: 'Order confirmed',
-        },
-        {
-          status: 'picked_up',
-          location: 'Distribution Center',
-          timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000),
-          description: 'Package picked up',
-        },
-        {
-          status: 'in_transit',
-          location: 'En route',
-          timestamp: new Date(),
-          description: 'Package in transit',
-        },
-      ];
-      return { data: updates };
-    }
     return api.get<TrackingUpdate[]>(`/tracking/${trackingNumber}`);
   },
 };
 
 export const billingAPI = {
   createPaymentIntent: async (amount: number, deliveryId: string) => {
-    if (isMockMode()) {
-      return { data: { clientSecret: `mock_secret_${Date.now()}`, deliveryId } };
-    }
     return api.post('/billing/create-payment', { amount, deliveryId });
   },
   getInvoices: async () => {
-    if (isMockMode()) {
-      return { data: [] };
-    }
     return api.get('/billing/invoices');
   },
 };

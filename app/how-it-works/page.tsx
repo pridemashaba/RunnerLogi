@@ -171,7 +171,7 @@ export default function HowItWorksPage() {
               Frequently Asked Questions
             </h2>
             <p className="text-xl text-gray-600">
-              Got questions? We've got answers
+              Got questions? We&apos;ve got answers
             </p>
           </div>
 
@@ -183,7 +183,7 @@ export default function HowItWorksPage() {
 
             <div className="bg-white rounded-lg p-6 shadow-sm">
               <h3 className="font-semibold text-lg mb-2">Which couriers do you work with?</h3>
-              <p className="text-gray-600">We partner with major courier services including J&T, Lalamove, GrabExpress, and more. We're constantly adding new partners to give you more options.</p>
+              <p className="text-gray-600">              We partner with major courier services including J&T, Lalamove, GrabExpress, and more. We&apos;re constantly adding new partners to give you more options.</p>
             </div>
 
             <div className="bg-white rounded-lg p-6 shadow-sm">

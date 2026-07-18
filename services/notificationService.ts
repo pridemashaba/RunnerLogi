@@ -5,7 +5,7 @@ export async function sendSMS(phoneNumber: string, message: string): Promise<boo
   return true;
 }
 
-export async function sendEmail(email: string, subject: string, _body: string): Promise<boolean> {
+export async function sendEmail(email: string, subject: string): Promise<boolean> {
   console.log(`Sending email to ${email}: ${subject}`);
   return true;
 }

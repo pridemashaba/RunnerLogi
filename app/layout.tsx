@@ -9,13 +9,8 @@ import Footer from '@/components/layout/Footer';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-<<<<<<< HEAD
   title: 'RunnerLogi | Delivery Platform for Social Media Sellers',
   description: 'Compare courier prices, delivery times, and shipping options for social media runners and online sellers.',
-=======
-  title: 'Runner Logistics Platform',
-  description: 'Logistics platform for social media runners',
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 };
 
 export default function RootLayout({

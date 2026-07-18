@@ -6,7 +6,7 @@ export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Public routes that don't require authentication
-  const publicRoutes = ['/', '/login', '/register', '/tracking'];
+  const publicRoutes = ['/', '/register', '/login', '/tracking'];
 
   // Check if route is public
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
@@ -16,11 +16,11 @@ export function proxy(request: NextRequest) {
 
   // If user is not logged in and tries to access protected route
   if (!token && !isPublicRoute) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
-// If user is logged in and tries to access login/register, we could redirect but we'll allow access
-// Users can log out from the navbar if needed
+// If user is logged in and tries to access register, we could redirect but we'll allow access
+// Users can access public pages if needed
 
   return NextResponse.next();
 }
@@ -29,7 +29,6 @@ export function proxy(request: NextRequest) {
 export const config = {
   matcher: [
     '/',
-    '/login',
     '/register',
     '/tracking/:path*',
     '/dashboard/:path*',

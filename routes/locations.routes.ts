@@ -1,10 +1,10 @@
 import { Router, Request, Response } from 'express';
-import { GoogleMapsService } from '../services/google-maps.service';
+import { GoogleMapsService } from '../services/google-maps.service.ts';
 import {
   LocationDetailsRequest,
   LocationDetailsResponse,
   LocationSearchRequest,
-} from '@/types/api.types';
+} from '../types/api.types.ts';
 
 const router = Router();
 const googleMapsService = new GoogleMapsService(process.env.GOOGLE_MAPS_API_KEY!);

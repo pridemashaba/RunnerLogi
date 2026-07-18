@@ -1,6 +1,6 @@
 import { TrackingUpdate, DeliveryStatus } from '@/types';
 
-export async function getTrackingUpdates(_trackingNumber: string): Promise<TrackingUpdate[]> {
+export async function getTrackingUpdates(): Promise<TrackingUpdate[]> {
   await new Promise(resolve => setTimeout(resolve, 500));
 
   // Mock tracking updates

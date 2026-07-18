@@ -2,7 +2,7 @@ import {
   DeliveryEstimateResponse,
   DeliveryServiceType,
   VehicleType,
-} from '@/types/api.types';
+} from '../types/api.types.ts';
 
 type PricingResult = DeliveryEstimateResponse['pricing'] & DeliveryEstimateResponse['breakdown'];
 

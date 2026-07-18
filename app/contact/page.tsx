@@ -20,7 +20,7 @@ export default function ContactPage() {
     try {
       // Simulate form submission
       await new Promise(resolve => setTimeout(resolve, 1000));
-showNotification("Message sent successfully! We'll get back to you soon.", 'success');
+      showNotification("Message sent successfully! We&apos;d love to hear from you.", 'success');
       setFormData({ name: '', email: '', subject: '', message: '' });
     } catch {
       showNotification('Failed to send message. Please try again.', 'error');
@@ -36,7 +36,7 @@ showNotification("Message sent successfully! We'll get back to you soon.", 'succ
         <div className="text-center mb-12">
           <h1 className="text-4xl font-bold text-gray-900">Contact Us</h1>
           <p className="mt-4 text-lg text-gray-600">
-            Have questions? We'd love to hear from you.
+            Have questions? We&apos;d love to hear from you.
           </p>
         </div>
 

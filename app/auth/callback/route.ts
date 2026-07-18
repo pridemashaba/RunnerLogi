@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 import { createServerClient, type CookieOptions } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { NextResponse } from 'next/server';
@@ -53,7 +52,7 @@ export async function GET(request: Request) {
   const next = requestUrl.searchParams.get('next') ?? '/dashboard';
 
   if (!code) {
-    return NextResponse.redirect(new URL('/login?error=missing_code', requestUrl.origin));
+    return NextResponse.redirect(new URL('/dashboard?error=missing_code', requestUrl.origin));
   }
 
   try {
@@ -61,22 +60,13 @@ export async function GET(request: Request) {
     const { error } = await client.auth.exchangeCodeForSession(code);
     if (error) {
       console.error('[auth/callback] exchange error:', error);
-      return NextResponse.redirect(new URL('/login?error=auth_failed', requestUrl.origin));
+      return NextResponse.redirect(new URL('/dashboard?error=auth_failed', requestUrl.origin));
     }
     await ensureCallbackProfile(client);
   } catch (error) {
     console.error('[auth/callback] unexpected error:', error);
-    return NextResponse.redirect(new URL('/login?error=unexpected', requestUrl.origin));
+    return NextResponse.redirect(new URL('/dashboard?error=unexpected', requestUrl.origin));
   }
 
   return NextResponse.redirect(new URL(next, requestUrl.origin));
-=======
-import { NextResponse } from 'next/server';
-
-export async function GET(request: Request) {
-  const requestUrl = new URL(request.url);
-  return NextResponse.redirect(
-    new URL('/dashboard', requestUrl.origin)
-  );
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 }

@@ -1,0 +1,61 @@
+export type DeliveryRow = {
+  id: string;
+  delivery_number: string;
+  seller_id: string;
+  courier_id: string | null;
+  pickup_address_id: string | null;
+  delivery_address_id: string | null;
+  assigned_courier_runner: string | null;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  weight_kg: string;
+  dimensions: string | null;
+  description: string | null;
+  is_fragile: boolean;
+  declared_value: string;
+  price: string;
+  payment_status: string;
+  status: string;
+  tracking_number: string | null;
+  estimated_delivery: string | null;
+  actual_delivery: string | null;
+  created_at: string;
+  updated_at: string;
+  cancelled_at: string | null;
+  notes: string | null;
+  cancellation_reason: string | null;
+};
+
+export type NewDelivery = {
+  delivery_number: string;
+  seller_id: string;
+  customer_name: string;
+  customer_email: string;
+  customer_phone: string;
+  weight_kg: number;
+  price: number;
+  payment_status?: string;
+  status?: string;
+  dimensions?: string;
+  description?: string;
+  is_fragile?: boolean;
+  declared_value?: number;
+  courier_id?: string;
+  pickup_address_id?: string;
+  delivery_address_id?: string;
+  assigned_courier_runner?: string;
+  tracking_number?: string;
+  estimated_delivery?: string;
+  notes?: string;
+};
+
+export type DeliveryStatusRow = {
+  id: string;
+  delivery_id: string;
+  status: string;
+  location: string | null;
+  description: string | null;
+  timestamp: string;
+  updated_by: string | null;
+};

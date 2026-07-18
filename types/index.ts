@@ -21,28 +21,11 @@ export interface Address {
 }
 
 export interface PackageDetails {
-<<<<<<< HEAD
-  weight?: number;
-  dimensions?: string;
-  description?: string;
-  quantity?: number;
-  dimensionsObj?: {
-=======
-  weight: number; // in kg
-  dimensions: {
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
-    length: number;
-    width: number;
-    height: number;
-  };
-<<<<<<< HEAD
-  isFragile?: boolean;
-  value?: number;
-=======
+  weight: number;
+  dimensions: string;
   description: string;
   isFragile: boolean;
   value: number;
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 }
 
 export type DeliveryStatus =
@@ -58,27 +41,18 @@ export type DeliveryStatus =
 
 export interface CourierOption {
   courierId: string;
-<<<<<<< HEAD
   id?: string;
   name: string;
   price: number;
   estimatedDays?: string;
-=======
-  name: string;
-  price: number;
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
   durationHours: number;
   eta: Date;
   trackingSupported: boolean;
   serviceLevel: 'economy' | 'standard' | 'express';
-<<<<<<< HEAD
   description?: string;
   features?: string[];
   logo?: string;
-  rating?: number;
-=======
   rating: number;
->>>>>>> 3e26547132126c075e46fffc19579da740bdea12
 }
 
 export interface Courier {
